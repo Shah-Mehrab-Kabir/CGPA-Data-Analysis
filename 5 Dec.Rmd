@@ -1,0 +1,392 @@
+---
+title: 'Playing with CGPA dataset'
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+---
+Load required packages
+```{r}
+library(readxl)
+library(dplyr)
+library(psych) # describe()
+library(skimr) # skim()
+library(pastecs) # stat.desc()
+```
+Load and see the data
+```{r}
+df <- read_excel("C:\\Users\\Dell\\OneDrive\\Desktop\\STATISTICS\\2nd Year\\R programming\\varsity\\Project_Distribution.xlsx")
+describe(df)
+skim(df)
+glimpse(df)
+stat.desc(df)
+summary(df) # Exam Roll numbers, Sex, CGPA, Group assignment, and Assigned Teacher
+sum(is.na(df)) # no Missing values
+```
+Convert variable types
+```{r}
+df$ExamRoll<-as.character(df$ExamRoll)
+class(df$ExamRoll)
+df$Sex <- as.factor(df$Sex)
+class(df$Sex)
+df$Group <- as.factor(df$Group)
+class(df$Group)
+df$AssignedTeacher <- as.factor(df$AssignedTeacher)
+class(df$AssignedTeacher)
+```
+See the data again
+```{r}
+str(df)
+summary(df)
+```
+# Descriptive Statistics
+For CGPA
+(i) Mean
+(ii) Median
+(iii) Standard deviation
+```{r}
+describe(df$CGPA)
+```
+Frequency Distributions
+(i) Sex
+(ii) Group
+(iii) AssignedTeacher
+```{r}
+table(df$Sex)
+table(df$Group)
+table(df$AssignedTeacher)
+
+df %>%
+  count(df$Sex) %>%  # Frequency
+  mutate(
+    percent = n / sum(n) * 100,
+    cum_n = cumsum(n),
+    cum_percent = cumsum(percent),
+    relative_freq = n / sum(n),
+    cum_relative = cumsum(relative_freq)
+  ) %>%
+  rename(Frequency = n)
+
+df %>%
+  count(df$Group) %>%  # Frequency
+  mutate(
+    percent = n / sum(n) * 100,
+    cum_n = cumsum(n),
+    cum_percent = cumsum(percent),
+    relative_freq = n / sum(n),
+    cum_relative = cumsum(relative_freq)
+  ) %>%
+  rename(Frequency = n)
+
+df %>%
+  count(df$AssignedTeacher) %>%  # Frequency
+  mutate(
+    percent = n / sum(n) * 100,
+    cum_n = cumsum(n),
+    cum_percent = cumsum(percent),
+    relative_freq = n / sum(n),
+    cum_relative = cumsum(relative_freq)
+  ) %>%
+  rename(Frequency = n)
+```
+Group Comparisons
+(i) CGPA by Sex (mean, SD, count)
+(ii) CGPA by Group (mean, SD, count)
+```{r}
+# Using dplyr (recommended)
+result <- df %>%
+  group_by(Sex) %>%
+  summarise(
+    Count = n(),
+    Mean_CGPA = round(mean(CGPA, na.rm = TRUE), 2),
+    SD_CGPA = round(sd(CGPA, na.rm = TRUE), 2),
+    .groups = 'drop'
+  )
+result
+# knitr::kable(result, caption = "CGPA by Sex") # Display nicely
+
+result <- df %>%
+  group_by(Group) %>%
+  summarise(
+    Count = n(),
+    Mean_CGPA = round(mean(CGPA, na.rm = TRUE), 2),
+    SD_CGPA = round(sd(CGPA, na.rm = TRUE), 2),
+    .groups = 'drop'
+  )
+result
+
+# For everyday use: dplyr (most readable and flexible)
+
+# For quick analysis: psych::describeBy()
+
+# For large datasets: data.table
+
+# For publication: gtsummary
+```
+# Data Visualization
+
+Distribution Plots 
+(i) Histogram of CGPA
+(ii) Density plot of CGPA
+
+
+```{r}
+library(ggplot2)
+
+# install.packages("esquisse")
+# library(esquisse) # Creates ggplot2 code automatically
+# esquisser(df) # Opens drag-and-drop interface
+```
+```{r}
+# Template for any plot
+#ggplot(data = df, aes(x = x_variable, y = y_variable)) +
+#  geom_*(aes(color/fill = grouping_variable)) +  # Choose geom
+#  labs(title = "Title", x = "X Label", y = "Y Label") +
+#  theme_minimal() +
+#  scale_fill_brewer(palette = "Set2")  # Color palette
+
+
+# Histogram of CGPA
+ggplot(df, aes(x = CGPA)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  labs(title = "Histogram of CGPA", x = "CGPA", y = "Count") +
+  theme_minimal()
+
+# Density plot of CGPA
+ggplot(df, aes(x = CGPA)) +
+  geom_density(fill = "steelblue", alpha = 0.5, color = NA) +
+  labs(title = "Density Plot of CGPA", x = "CGPA", y = "Density") +
+  theme_minimal()
+
+
+```
+Categorical Data Plots:
+(i) Bar plot of Sex
+(ii) Bar plot of Group
+(iii) Bar plot of AssignedTeacher
+```{r}
+# Bar plot of Sex
+ggplot(df, aes(x = Sex, fill = Sex, group = Sex)) +
+  geom_bar() +
+  labs(title = "Bar Plot of Sex", x = "Sex", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2")
+
+# Bar plot of Group
+ggplot(df, aes(x = Group, fill = Group, group = Group)) +
+  geom_bar() +
+  labs(title = "Bar Plot of Group", x = "Group", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1")
+
+# Bar plot of Assigned Teacher 
+ggplot(df, aes(x = AssignedTeacher, fill = AssignedTeacher, group = AssignedTeacher)) +
+  geom_bar() +
+  labs(title = "Bar Plot of Assigned Teacher",
+       x = "Assigned Teacher", y = "Count") +
+  theme_minimal() +
+  scale_fill_viridis_d()        # many categories → no Brewer palette
+
+```
+Easier Way
+```{r}
+# Bar plot of Sex
+barplot(table(df$Sex), main = "Count by Sex", xlab = "Sex", ylab = "Count")
+# Bar plot of Group
+barplot(table(df$Group), main = "Count by Group", xlab = "Group", ylab = "Count")
+# Bar plot of AssignedTeacher
+barplot(table(df$AssignedTeacher), main = "Count by Assigned Teacher", 
+        xlab = "Teacher", ylab = "Count", las = 2)
+```
+Comparative Plots:
+(i) Boxplot of CGPA by Sex
+(ii) Boxplot of CGPA by Group
+```{r}
+library(ggplot2)
+
+ggplot(df, aes(x = Sex, y = CGPA, fill = Sex)) +
+  geom_boxplot(alpha = 0.8, outlier.color = "red") +
+  stat_summary(fun = mean,
+               geom = "point",
+               shape = 23,
+               size = 3,
+               fill = "yellow") +
+  labs(title = "Boxplot of CGPA by Sex",
+       x = "Sex",
+       y = "CGPA") +
+  theme_minimal() 
+  
+ggplot(df, aes(x = Group, y = CGPA, fill = Group)) +
+  geom_boxplot(alpha = 0.8, outlier.color = "red") +
+  stat_summary(fun = mean,
+               geom = "point",
+               shape = 23,
+               size = 3,
+               fill = "yellow") +
+  labs(title = "Boxplot of CGPA by Group",
+       x = "Group",
+       y = "CGPA") +
+  theme_minimal() 
+
+```
+Easier way:
+```{r}
+boxplot(CGPA ~ Sex, data = df, main = "CGPA by Sex", xlab = "Sex", ylab = "CGPA")
+boxplot(CGPA ~ Group, data = df, main = "CGPA by Group", xlab = "Group", ylab = "CGPA")
+
+```
+# Inferential Statistics
+
+Mean Comparisons :
+1) Independent samples t-test: CGPA by Sex
+2) One-way ANOVA: CGPA by Group
+3) One-way ANOVA: CGPA by AssignedTeacher
+
+```{r}
+library(ggstatsplot)
+
+# t-test with plot
+gghistostats(
+  data = df,
+  x = CGPA,
+  y = Sex,
+  type = "parametric",  # t-test
+  title = "CGPA by Sex with t-test"
+)
+
+# ANOVA with plot
+ggbetweenstats(
+  data = df,
+  x = Group,
+  y = CGPA,
+  type = "parametric",  # ANOVA
+  title = "CGPA by Group with ANOVA",
+  pairwise.comparisons = TRUE,  # Shows post-hoc
+  pairwise.display = "significant"
+)
+```
+Easier Way:
+```{r}
+# (i) t-test
+t.test(CGPA ~ Sex, data = df, var.equal = TRUE)  # Equal variances
+t.test(CGPA ~ Sex, data = df, var.equal = FALSE) # Welch's t-test
+
+# (ii) ANOVA
+aov_result <- aov(CGPA ~ Group, data = df)
+summary(aov_result)  # ANOVA table
+
+# (iii) Another ANOVA
+aov_teacher <- aov(CGPA ~ AssignedTeacher, data = df)
+summary(aov_teacher)
+
+# Post-hoc tests
+TukeyHSD(aov_result)  # Tukey's HSD
+pairwise.t.test(df$CGPA, df$Group, p.adjust.method = "bonferroni")
+```
+Association Tests :
+(i) Chi-square test: Sex vs Group
+(ii) Chi-square test: Sex vs AssignedTeacher
+```{r}
+library(ggstatsplot)
+
+# Sex vs Group with chi-square
+ggbarstats(
+  data = df,
+  x = Sex,
+  y = Group,
+  title = "Association: Sex vs Group",
+  results.subtitle = TRUE,
+  label = "both",  # Show counts and percentages
+  perc.k = 1       # Decimal places for percentages
+)
+
+# Sex vs AssignedTeacher
+ggbarstats(
+  data = df,
+  x = Sex,
+  y = AssignedTeacher,
+  title = "Association: Sex vs AssignedTeacher"
+)
+```
+Easier Way:
+```{r}
+# Sex vs Group with chi-square
+chisq.test(table(df$Sex, df$Group))
+# Sex vs AssignedTeacher
+chisq.test(table(df$Sex, df$AssignedTeacher))
+
+```
+# Regression Analysis
+
+Simple Linear Regression :
+(i) Model 1: CGPA ~ Sex
+(ii) Model 2: CGPA ~ Group
+```{r}
+summary(lm(CGPA ~ Sex, data = df))
+summary(lm(CGPA ~ Group, data = df))
+```
+Multiple Regression :
+Full model: CGPA ~ Sex + Group + AssignedTeacher
+```{r}
+
+# Full model
+full_model <- lm(CGPA ~ Sex + Group + AssignedTeacher, data = df)
+summary(full_model)
+
+# All diagnostic plots
+library(performance)
+check_model(full_model)  
+```
+#  Outlier Detection
+
+(i) Detect outliers in CGPA using the IQR rule
+(ii) Visualize outliers using boxplots
+```{r}
+# Detect outliers using IQR rule
+Q1 <- quantile(df$CGPA, 0.25)
+Q3 <- quantile(df$CGPA, 0.75)
+IQR_val <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR_val
+upper <- Q3 + 1.5 * IQR_val
+
+outliers <- df[df$CGPA < lower | df$CGPA > upper, ]
+cat("\nOutliers detected:", nrow(outliers), "\n")
+```
+```{r}
+# Boxplot in one line
+boxplot(df$CGPA, col = "lightblue", main = "CGPA Distribution with Outliers", 
+        ylab = "CGPA", outline = TRUE)
+```
+# Regression Diagnostics
+
+For the multiple regression model (CGPA ~ Sex + Group + AssignedTeacher), check:
+
+i) Linearity
+ii) Normality
+iii) Homoscedasticity
+iv) Multicollinearity
+```{r}
+# Fit the model
+full_model <- lm(CGPA ~ Sex + Group + AssignedTeacher, data = df)
+
+# 1. Diagnostic plots (Linearity, Homoscedasticity, Normality of residuals)
+par(mfrow = c(2, 2))   # 2x2 layout
+plot(full_model)        # Generates:
+                        # 1. Residuals vs Fitted → checks linearity
+                        # 2. Normal Q-Q → checks residual normality
+                        # 3. Scale-Location → checks homoscedasticity
+                        # 4. Residuals vs Leverage → checks influential points
+par(mfrow = c(1, 1))   # Reset layout
+
+# 2. Normality test of residuals
+cat("\nShapiro-Wilk Test on Residuals:\n")
+shapiro.test(residuals(full_model))
+
+# 3. Multicollinearity (VIF)
+library(car)
+cat("\nVariance Inflation Factors (VIF):\n")
+vif(full_model)
+
+```
+
