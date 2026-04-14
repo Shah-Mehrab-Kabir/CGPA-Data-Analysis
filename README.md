@@ -1,3 +1,7 @@
 # CGPA-Data-Analysis
 
-I was working on a real life CGPA dataset of 4th year students of Statistcs Dept, University of Dhaka (after their 3rd year Final Exam) to sharpen my RProgramming skills, and I explored the data, checked distributions, relationships between variables, and ran basic statistical analysis.
+Exploratory Data Analysis on CGPA Dataset | R Programming
+
+Worked with a real-life CGPA dataset of 4th-year Statistics students (University of Dhaka) after their 3rd-year final exam.
+
+Performed data exploration, distribution checks, variable relationship analysis, and basic statistical tests to strengthen R programming skills.
